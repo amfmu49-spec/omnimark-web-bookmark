@@ -14,20 +14,20 @@ const COLUMNS = [
   {
     id: 'unread' as const,
     title: '未読 (後で読む)',
-    icon: <Clock className="w-4 h-4 text-sky-400" />,
-    color: 'border-sky-500/30 bg-sky-500/5',
+    icon: <Clock className="w-4 h-4 text-sky-600" />,
+    color: 'border-sky-200 bg-sky-50/50',
   },
   {
     id: 'reading' as const,
     title: '読書中・作業中',
-    icon: <BookOpen className="w-4 h-4 text-amber-400" />,
-    color: 'border-amber-500/30 bg-amber-500/5',
+    icon: <BookOpen className="w-4 h-4 text-amber-600" />,
+    color: 'border-amber-200 bg-amber-50/50',
   },
   {
     id: 'read' as const,
     title: '読了・アーカイブ済',
-    icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
-    color: 'border-emerald-500/30 bg-emerald-500/5',
+    icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+    color: 'border-emerald-200 bg-emerald-50/50',
   },
 ];
 
@@ -45,15 +45,15 @@ export const BookmarkKanban: React.FC<BookmarkKanbanProps> = ({
         return (
           <div
             key={col.id}
-            className={`p-4 rounded-2xl border ${col.color} flex flex-col space-y-3 min-h-[500px]`}
+            className={`p-4 rounded-2xl border ${col.color} flex flex-col space-y-3 min-h-[500px] shadow-sm`}
           >
             {/* Column Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <div className="flex items-center gap-2 font-bold text-sm text-white">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <div className="flex items-center gap-2 font-bold text-sm text-slate-800">
                 {col.icon}
                 <span>{col.title}</span>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-mono text-slate-400">
+              <span className="px-2 py-0.5 rounded-full bg-white border border-slate-200 text-xs font-mono font-bold text-slate-600">
                 {columnBookmarks.length}
               </span>
             </div>
@@ -66,16 +66,16 @@ export const BookmarkKanban: React.FC<BookmarkKanbanProps> = ({
                   <div
                     key={bm.id}
                     onClick={() => onOpenDetailModal(bm)}
-                    className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl hover:border-indigo-500/50 hover:shadow-lg transition cursor-pointer space-y-2 text-slate-200"
+                    className="p-3.5 bg-white border border-slate-200/80 rounded-xl hover:border-indigo-400 hover:shadow-md transition cursor-pointer space-y-2 text-slate-800"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <img
                           src={bm.favicon}
                           alt={domain}
-                          className="w-3.5 h-3.5 rounded bg-white/90 p-0.5"
+                          className="w-3.5 h-3.5 rounded bg-white p-0.5 border border-slate-200"
                         />
-                        <span className="text-[10px] font-mono text-slate-400">{domain}</span>
+                        <span className="text-[10px] font-mono font-semibold text-slate-500">{domain}</span>
                       </div>
                       <button
                         type="button"
@@ -83,18 +83,18 @@ export const BookmarkKanban: React.FC<BookmarkKanbanProps> = ({
                           e.stopPropagation();
                           onToggleFavorite(bm.id);
                         }}
-                        className="text-amber-400"
+                        className="text-amber-500"
                       >
-                        <Star className={`w-3.5 h-3.5 ${bm.isFavorite ? 'fill-amber-400' : ''}`} />
+                        <Star className={`w-3.5 h-3.5 ${bm.isFavorite ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}`} />
                       </button>
                     </div>
 
-                    <h4 className="font-bold text-xs text-white line-clamp-2 leading-snug">
+                    <h4 className="font-bold text-xs text-slate-900 line-clamp-2 leading-snug">
                       {bm.title}
                     </h4>
 
                     {bm.aiSummary && (
-                      <p className="text-[11px] text-slate-400 line-clamp-2 bg-slate-950/60 p-2 rounded border border-slate-800">
+                      <p className="text-[11px] text-slate-600 line-clamp-2 bg-gradient-to-r from-indigo-50/70 to-purple-50/50 p-2 rounded border border-indigo-100 font-medium">
                         {bm.aiSummary}
                       </p>
                     )}

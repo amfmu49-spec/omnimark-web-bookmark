@@ -53,11 +53,11 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl text-slate-200">
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
+        <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="bg-slate-950/80 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+            <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
               <th className="py-3 px-4 w-10"></th>
               <th className="py-3 px-4">タイトル / AI概要</th>
               <th className="py-3 px-4 hidden md:table-cell">カテゴリ</th>
@@ -67,14 +67,14 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
               <th className="py-3 px-4 text-right">操作</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80">
+          <tbody className="divide-y divide-slate-100">
             {bookmarks.map((bm) => {
               const domain = new URL(bm.url).hostname;
               return (
                 <tr
                   key={bm.id}
                   onClick={() => onOpenDetailModal(bm)}
-                  className="hover:bg-slate-800/50 transition cursor-pointer group"
+                  className="hover:bg-indigo-50/40 transition cursor-pointer group"
                 >
                   {/* Favorite & Pin Column */}
                   <td className="py-3 px-4 text-center">
@@ -86,7 +86,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                       }}
                       className="text-amber-400 hover:scale-110 transition"
                     >
-                      <Star className={`w-4 h-4 ${bm.isFavorite ? 'fill-amber-400' : ''}`} />
+                      <Star className={`w-4 h-4 ${bm.isFavorite ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}`} />
                     </button>
                   </td>
 
@@ -96,7 +96,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                       <img
                         src={bm.favicon}
                         alt={domain}
-                        className="w-4 h-4 rounded mt-0.5 shrink-0 bg-white/90 p-0.5"
+                        className="w-4 h-4 rounded mt-0.5 shrink-0 bg-white p-0.5 border border-slate-200"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
                             'https://www.google.com/s2/favicons?domain=example.com';
@@ -105,15 +105,15 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                       <div className="space-y-0.5 min-w-0">
                         <div className="flex items-center gap-2">
                           {bm.isPinned && (
-                            <span className="px-1.5 py-0.2 bg-indigo-600 text-white font-bold text-[9px] rounded">
+                            <span className="px-1.5 py-0.2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-[9px] rounded">
                               PIN
                             </span>
                           )}
-                          <span className="font-bold text-slate-100 group-hover:text-indigo-300 transition-colors line-clamp-1">
+                          <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
                             {bm.title}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 line-clamp-1 font-mono">
+                        <p className="text-[11px] text-slate-500 line-clamp-1 font-mono">
                           {domain} {bm.aiSummary && `• ${bm.aiSummary}`}
                         </p>
                       </div>
@@ -122,13 +122,13 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 
                   {/* Category */}
                   <td className="py-3 px-4 hidden md:table-cell">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium text-[11px]">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[11px] border border-indigo-100">
                       {bm.category}
                     </span>
                   </td>
 
                   {/* Collection */}
-                  <td className="py-3 px-4 text-slate-400 hidden lg:table-cell">
+                  <td className="py-3 px-4 text-slate-500 hidden lg:table-cell font-medium">
                     📁 {getCollectionName(bm.collectionId)}
                   </td>
 
@@ -143,7 +143,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                             e.stopPropagation();
                             onSelectTag(tag);
                           }}
-                          className="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px]"
+                          className="px-1.5 py-0.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 rounded text-[10px] border border-slate-200/60 font-medium"
                         >
                           #{tag}
                         </button>

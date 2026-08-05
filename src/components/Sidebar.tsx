@@ -113,17 +113,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const filteredTags = allTags.filter((t) => t.name.toLowerCase().includes(tagSearch.toLowerCase()));
 
   const content = (
-    <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800/80 text-slate-200 text-xs select-none">
+    <div className="flex flex-col h-full bg-white border-r border-slate-200 text-slate-700 text-xs select-none">
       {/* Search Input Box */}
-      <div className="p-3.5 border-b border-slate-800">
+      <div className="p-3.5 border-b border-slate-200/80">
         <div className="relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-indigo-500 absolute left-3 top-2.5" />
           <input
             type="text"
             value={filterOptions.searchQuery}
             onChange={(e) => setFilterOptions((prev) => ({ ...prev, searchQuery: e.target.value }))}
             placeholder="タイトル・メモ・URLを検索..."
-            className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition"
           />
         </div>
       </div>
@@ -131,14 +131,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-5 custom-scrollbar">
         {/* Main Quick Filters */}
         <div className="space-y-1">
-          <div className="px-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+          <div className="px-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             フィルター
           </div>
 
           <button
             type="button"
             onClick={resetAllFilters}
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition font-medium ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition font-semibold ${
               filterOptions.selectedCategory === 'all' &&
               !filterOptions.favoriteOnly &&
               !filterOptions.pinnedOnly &&
@@ -146,15 +146,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               filterOptions.readStatus === 'all' &&
               filterOptions.selectedCollection === 'all' &&
               filterOptions.selectedTags.length === 0
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-300 hover:bg-slate-800/60'
+                ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-200/80 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4" />
+              <Layers className="w-4 h-4 text-indigo-600" />
               <span>すべてのブックマーク</span>
             </div>
-            <span className="px-1.5 py-0.5 rounded-full bg-slate-800/80 text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px]">
               {totalCounts.all}
             </span>
           </button>
@@ -168,17 +168,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 archivedOnly: false,
               }))
             }
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition font-medium ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition font-semibold ${
               filterOptions.favoriteOnly
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                : 'text-slate-300 hover:bg-slate-800/60'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200/80 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400/20" />
+              <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
               <span>お気に入り</span>
             </div>
-            <span className="px-1.5 py-0.5 rounded-full bg-slate-800/80 text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px]">
               {totalCounts.favorites}
             </span>
           </button>
@@ -191,17 +191,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 readStatus: prev.readStatus === 'unread' ? 'all' : 'unread',
               }))
             }
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition font-medium ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition font-semibold ${
               filterOptions.readStatus === 'unread'
-                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                : 'text-slate-300 hover:bg-slate-800/60'
+                ? 'bg-sky-50 text-sky-800 border border-sky-200/80 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-sky-400" />
+              <Clock className="w-4 h-4 text-sky-500" />
               <span>未読アイテム</span>
             </div>
-            <span className="px-1.5 py-0.5 rounded-full bg-slate-800/80 text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px]">
               {totalCounts.unread}
             </span>
           </button>
@@ -215,17 +215,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 favoriteOnly: false,
               }))
             }
-            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition font-medium ${
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl transition font-semibold ${
               filterOptions.archivedOnly
-                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                : 'text-slate-300 hover:bg-slate-800/60'
+                ? 'bg-purple-50 text-purple-800 border border-purple-200/80 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
             <div className="flex items-center gap-2">
-              <Archive className="w-4 h-4 text-slate-400" />
+              <Archive className="w-4 h-4 text-purple-500" />
               <span>アーカイブ</span>
             </div>
-            <span className="px-1.5 py-0.5 rounded-full bg-slate-800/80 text-[10px]">
+            <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono text-[10px]">
               {totalCounts.archived}
             </span>
           </button>

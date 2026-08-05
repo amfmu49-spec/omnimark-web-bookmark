@@ -86,11 +86,14 @@ export const BookmarkGrid: React.FC<BookmarkGridProps> = ({
           <div
             key={bm.id}
             onClick={() => onOpenDetailModal(bm)}
-            className="group relative bg-slate-900 border border-slate-800/90 rounded-2xl overflow-hidden hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col cursor-pointer text-slate-200"
+            className="group relative bg-white border border-slate-200/80 rounded-2xl overflow-hidden hover:border-indigo-400/60 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 flex flex-col cursor-pointer text-slate-800"
           >
+            {/* Top AI Gradient Accent Line on Hover */}
+            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
             {/* Pinned Badge */}
             {bm.isPinned && (
-              <div className="absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full bg-indigo-600 text-white font-medium text-[10px] shadow-md flex items-center gap-1">
+              <div className="absolute top-3 left-3 z-10 px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold text-[10px] shadow-md flex items-center gap-1">
                 <Pin className="w-3 h-3 fill-white" />
                 <span>ピン留め</span>
               </div>
@@ -103,75 +106,75 @@ export const BookmarkGrid: React.FC<BookmarkGridProps> = ({
                 e.stopPropagation();
                 onToggleFavorite(bm.id);
               }}
-              className="absolute top-3 right-3 z-10 p-2 rounded-full bg-slate-950/70 hover:bg-slate-950 border border-slate-700/80 text-amber-400 transition shadow backdrop-blur-md"
+              className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 hover:bg-white border border-slate-200 text-amber-500 transition shadow-sm backdrop-blur-md"
               title="お気に入り切り替え"
             >
-              <Star className={`w-4 h-4 ${bm.isFavorite ? 'fill-amber-400' : ''}`} />
+              <Star className={`w-4 h-4 ${bm.isFavorite ? 'fill-amber-400 text-amber-500' : 'text-slate-400'}`} />
             </button>
 
             {/* Cover Image or Visual Header */}
-            <div className="relative h-36 w-full bg-slate-950 overflow-hidden shrink-0">
+            <div className="relative h-36 w-full bg-slate-100 overflow-hidden shrink-0">
               {bm.coverImage ? (
                 <img
                   src={bm.coverImage}
                   alt={bm.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-85 group-hover:opacity-100"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-slate-900 flex items-center justify-center p-4">
-                  <Globe className="w-12 h-12 text-slate-700" />
+                <div className="w-full h-full bg-gradient-to-br from-indigo-50 via-purple-50 to-slate-100 flex items-center justify-center p-4">
+                  <Globe className="w-12 h-12 text-slate-300" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent"></div>
 
               {/* Favicon & Domain Overlay */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
+              <div className="absolute bottom-2.5 left-3 right-3 flex items-center gap-2">
                 <img
                   src={bm.favicon}
                   alt={domain}
-                  className="w-5 h-5 rounded bg-white/90 p-0.5 shrink-0 shadow"
+                  className="w-5 h-5 rounded bg-white p-0.5 shrink-0 shadow-sm border border-slate-200"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       'https://www.google.com/s2/favicons?domain=example.com';
                   }}
                 />
-                <span className="text-xs font-mono font-medium text-slate-300 truncate drop-shadow-md">
+                <span className="text-xs font-mono font-bold text-slate-700 truncate drop-shadow-sm">
                   {domain}
                 </span>
               </div>
             </div>
 
             {/* Card Body */}
-            <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div className="p-4 flex-1 flex flex-col justify-between space-y-3 bg-white">
               <div className="space-y-2">
                 {/* Category & Collection Header */}
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60 font-semibold">
                     {CATEGORY_ICONS[bm.category]}
                     <span>{CATEGORY_LABELS[bm.category]}</span>
                   </span>
 
-                  <span className="text-slate-400 font-medium text-[11px] truncate max-w-[130px]">
+                  <span className="text-slate-500 font-medium text-[11px] truncate max-w-[130px]">
                     📁 {getCollectionName(bm.collectionId)}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors line-clamp-2 leading-snug">
+                <h3 className="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug">
                   {bm.title}
                 </h3>
 
-                {/* AI Summary Box */}
+                {/* AI Summary Box (Light AI Gradient Style) */}
                 {bm.aiSummary && (
-                  <div className="p-2.5 bg-indigo-950/40 border border-indigo-500/20 rounded-xl space-y-1">
-                    <div className="flex items-center gap-1 text-[10px] font-semibold text-indigo-400">
-                      <Sparkles className="w-3 h-3" />
+                  <div className="p-2.5 bg-gradient-to-r from-indigo-50/80 via-purple-50/60 to-pink-50/50 border border-indigo-200/80 rounded-xl space-y-1">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-indigo-700">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                       <span>AI要約</span>
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-700 leading-relaxed line-clamp-2 font-medium">
                       {bm.aiSummary}
                     </p>
                   </div>
@@ -196,7 +199,7 @@ export const BookmarkGrid: React.FC<BookmarkGridProps> = ({
                         e.stopPropagation();
                         onSelectTag(tag);
                       }}
-                      className="px-2 py-0.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[10px] rounded-md transition"
+                      className="px-2 py-0.5 bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 border border-slate-200/80 text-[10px] rounded-md transition font-medium"
                     >
                       #{tag}
                     </button>
