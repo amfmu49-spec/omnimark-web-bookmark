@@ -224,8 +224,8 @@ export default function App() {
     }
 
     // iOS Shortcuts unencoded fallback using raw search
+    let rawSearch = window.location.search;
     if (!targetUrl) {
-      let rawSearch = window.location.search;
       try {
         rawSearch = decodeURIComponent(window.location.search);
       } catch (e) {
