@@ -83,8 +83,8 @@ export const Header: React.FC<HeaderProps> = ({
                   <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent">
                     OmniMark
                   </h1>
-                  <span className="hidden sm:inline-block text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                    Sync & AI
+                  <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                    ver 1.0.0
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 hidden md:block">萬能Webブックマーク & ナレッジハブ</p>

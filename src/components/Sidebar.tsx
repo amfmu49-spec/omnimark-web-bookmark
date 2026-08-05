@@ -427,6 +427,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>入出力</span>
           </button>
         </div>
+
+        {/* Version Info Footer */}
+        <div className="pt-1 text-center">
+          <span className="text-[10px] text-slate-500 font-mono">OmniMark ver 1.0.0 (Sync & AI)</span>
+        </div>
       </div>
     </div>
   );
