@@ -119,52 +119,47 @@ export const BookmarkletModal: React.FC<BookmarkletModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-5 text-xs text-slate-300 custom-scrollbar flex-1">
           {activeTab === 'mobile' ? (
             <div className="space-y-4">
-              <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl text-indigo-200 leading-relaxed flex items-start gap-2.5">
-                <Sparkles className="w-5 h-5 text-indigo-400 shrink-0 mt-0.5" />
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 leading-relaxed flex items-start gap-2.5">
+                <Sparkles className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-sm text-indigo-300">
-                    スマホのシェアボタン（共有）にOmniMarkを追加！
+                  <span className="font-bold block text-sm text-indigo-800">
+                    TikTokやX(Twitter)アプリ・スマホの共有ボタンから1タップ追加！
                   </span>
-                  AndroidのChromeやiPhoneのSafariでWebページやニュースを閲覧中、標準の「共有」メニューから直接AI要約保存できるようになります。
+                  TikTokアプリやXアプリ、ブラウザで動画や投稿を閲覧中、「共有（シェア）」メニューからAMUPOKEへワンタップでAI保存できます。
                 </div>
               </div>
 
               {/* Android Guide */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 font-bold text-white text-xs">
-                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded">
+              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 shadow-sm">
+                <div className="flex items-center gap-2 font-bold text-slate-800 text-xs">
+                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
                     Android / Chrome
                   </span>
-                  <span>「ホーム画面に追加」でシステム共有先に自動登録</span>
+                  <span>「ホーム画面に追加」でTikTok・X共有に対応</span>
                 </div>
-                <ol className="list-decimal pl-4 space-y-1.5 text-slate-300 text-[11px] leading-normal">
-                  <li>Chromeメニュー（右上3点アイコン）をタップ</li>
+                <ol className="list-decimal pl-4 space-y-1.5 text-slate-600 text-[11px] leading-normal">
+                  <li>Chromeで本サイトを開き、右上メニューから <strong className="text-indigo-600">「ホーム画面に追加」</strong> を選択</li>
                   <li>
-                    <strong className="text-indigo-300">「ホーム画面に追加」</strong> または{' '}
-                    <strong className="text-indigo-300">「アプリをインストール」</strong> を選択
+                    TikTokやXアプリで気になる動画・投稿を開き <strong className="text-indigo-600">「共有（シェア）」</strong> をタップ
                   </li>
                   <li>
-                    完了後、他のアプリやChromeで記事を開き「共有（シェア）」を押すと、ターゲットアプリ一覧に{' '}
-                    <strong className="text-indigo-400">「OmniMark」</strong> が表示されます！
+                    送信先一覧から <strong className="text-indigo-600 font-bold">「AMUPOKE」</strong> を選ぶだけでAI要約付きで自動追加されます！
                   </li>
                 </ol>
               </div>
 
               {/* iOS Guide */}
-              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 font-bold text-white text-xs">
-                  <span className="px-2 py-0.5 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded">
+              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 shadow-sm">
+                <div className="flex items-center gap-2 font-bold text-slate-800 text-xs">
+                  <span className="px-2 py-0.5 bg-sky-50 text-sky-700 border border-sky-200 rounded">
                     iPhone / iOS Safari
                   </span>
-                  <span>Safariの共有メニューまたはショートカット連携</span>
+                  <span>Safariの共有メニューまたはURL手動追加</span>
                 </div>
-                <ol className="list-decimal pl-4 space-y-1.5 text-slate-300 text-[11px] leading-normal">
-                  <li>Safariの下部中央にある「共有」アイコン（四角から矢印）をタップ</li>
+                <ol className="list-decimal pl-4 space-y-1.5 text-slate-600 text-[11px] leading-normal">
+                  <li>Safariの下部中央「共有」アイコン（四角に矢印）から <strong className="text-indigo-600">「ホーム画面に追加」</strong></li>
                   <li>
-                    <strong className="text-indigo-300">「ホーム画面に追加」</strong> を選択（WebアプリとしてPWA登録）
-                  </li>
-                  <li>
-                    またはiOSの「ショートカット」アプリで「Webページを開く: {appOrigin}?url=[共有入力]&sync={syncCode}」を登録すると、共有シートからワンタップで保存できます。
+                    TikTokやXアプリで共有ボタン ➔ <strong className="text-indigo-600">「リンクをコピー」</strong> ➔ AMUPOKEの <strong className="text-indigo-600">「+追加」</strong> ボタンへ貼り付けて完了！
                   </li>
                 </ol>
               </div>

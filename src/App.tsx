@@ -202,19 +202,24 @@ export default function App() {
     const textParam = params.get('text');
     const titleParam = params.get('title');
 
-    let targetUrl = quickUrlParam || urlParam;
+    let targetUrl = quickUrlParam || urlParam || '';
 
+    // Extract HTTP/HTTPS URL from text if shared from apps like TikTok, X, etc.
     if (!targetUrl && textParam) {
-      // Extract URL from shared text if available
-      const urlMatch = textParam.match(/(https?:\/\/[^\s]+)/i);
-      if (urlMatch) {
-        targetUrl = urlMatch[0];
+      const match = textParam.match(/(https?:\/\/[^\s"'>]+)/i);
+      if (match) {
+        targetUrl = match[1];
+      }
+    } else if (targetUrl && !/^https?:\/\//i.test(targetUrl)) {
+      const match = targetUrl.match(/(https?:\/\/[^\s"'>]+)/i);
+      if (match) {
+        targetUrl = match[1];
       }
     }
 
-    if (targetUrl) {
-      handleQuickAddUrl(targetUrl, titleParam || undefined);
-      showToast('📱 スマホ共有 / ブックマークレットから新しいリンクをAI保存しました！');
+    if (targetUrl.trim()) {
+      handleQuickAddUrl(targetUrl.trim(), titleParam || undefined);
+      showToast('📱 共有機能 / ブックマークレットから新しいリンクをAI保存しました！');
       // Clean query params from address bar
       window.history.replaceState({}, document.title, window.location.pathname);
     }

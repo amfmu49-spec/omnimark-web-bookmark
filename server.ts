@@ -216,15 +216,34 @@ app.post('/api/metadata', async (req, res) => {
     platformLabel = 'Instagram';
   }
 
+  // Generate intelligent fallback summary even if AI key is pending or API call fails
+  let fallbackSummary = extractedDescription || '';
+  if (!fallbackSummary) {
+    if (isTikTok) {
+      fallbackSummary = `TikTok (${domain}) の動画コンテンツ。トレンドや短尺動画の投稿です。`;
+    } else if (isXorTwitter) {
+      fallbackSummary = `X (旧Twitter) の投稿ポスト。話題の最新ツイート情報です。`;
+    } else if (isYouTube) {
+      fallbackSummary = `YouTube の動画コンテンツ。詳細はリンク先をご参照ください。`;
+    } else if (isInstagram) {
+      fallbackSummary = `Instagram の写真・動画投稿コンテンツです。`;
+    } else {
+      fallbackSummary = `${extractedTitle || domain} に関するWebコンテンツです。`;
+    }
+  }
+
   // Use Gemini AI to enrich title, generate Japanese summary, tags, and category
   const ai = getGeminiClient();
   let aiMetadata = {
-    title: extractedTitle || (platformLabel ? `${platformLabel} 投稿/コンテンツ` : domain),
+    title: extractedTitle && extractedTitle !== domain ? extractedTitle : (platformLabel ? `${platformLabel} 投稿` : domain),
     description: extractedDescription || `Bookmark from ${domain}`,
     category: defaultCategory,
     suggestedTags: [platformLabel || domain.replace(/^www\./, '').split('.')[0], 'Web'],
-    aiSummary: `${platformLabel || domain} の動画・投稿コンテンツです。`,
-    aiKeyTakeaways: ['SNS / 動画コンテンツ', '詳細情報はリンク先を参照'],
+    aiSummary: fallbackSummary,
+    aiKeyTakeaways: [
+      platformLabel ? `${platformLabel} コンテンツ` : 'Webページ',
+      extractedTitle || '詳細情報はリンク先を参照',
+    ],
   };
 
   if (ai) {

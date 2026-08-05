@@ -1,6 +1,6 @@
 {
-  "short_name": "OmniMark",
-  "name": "OmniMark - AI Bookmark Manager",
+  "short_name": "AMUPOKE",
+  "name": "AMUPOKE - AI Bookmark & Knowledge Hub",
   "icons": [
     {
       "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&auto=format&fit=crop&q=80",
@@ -16,7 +16,7 @@
     }
   ],
   "start_url": "/",
-  "background_color": "#020617",
+  "background_color": "#f8fafc",
   "theme_color": "#4f46e5",
   "display": "standalone",
   "orientation": "portrait-primary",
