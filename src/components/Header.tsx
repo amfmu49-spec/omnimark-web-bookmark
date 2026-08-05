@@ -59,12 +59,12 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5">
         <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
           {/* Brand & Mobile Sidebar Toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               type="button"
               id="mobile-menu-toggle-btn"
               onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-              className="lg:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
               aria-label="メニュー切り替え"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,18 +72,18 @@ export const Header: React.FC<HeaderProps> = ({
               </svg>
             </button>
 
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/20">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/20 shrink-0">
                 <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <BookmarkCheck className="w-5 h-5 text-indigo-400" />
+                  <BookmarkCheck className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
                 </div>
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent">
                     OmniMark
                   </h1>
-                  <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
+                  <span className="hidden sm:inline-block text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
                     ver 1.0.0
                   </span>
                 </div>
@@ -215,27 +215,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
         </div>
-
-        {/* Mobile Quick Paste Input */}
-        <form onSubmit={handleQuickSubmit} className="md:hidden mt-2.5">
-          <div className="relative w-full flex items-center">
-            <input
-              type="text"
-              value={quickUrl}
-              onChange={(e) => setQuickUrl(e.target.value)}
-              placeholder="URLを貼り付けてAI即座保存..."
-              className="w-full pl-3 pr-20 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <button
-              type="submit"
-              disabled={isAddingQuick || !quickUrl.trim()}
-              className="absolute right-1 px-2.5 py-1 bg-indigo-600 disabled:opacity-50 text-white font-medium text-xs rounded-lg flex items-center gap-1"
-            >
-              {isAddingQuick ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-              <span>保存</span>
-            </button>
-          </div>
-        </form>
       </div>
     </header>
   );
