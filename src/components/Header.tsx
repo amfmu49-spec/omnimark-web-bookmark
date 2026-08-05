@@ -55,9 +55,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100 shadow-md w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
           {/* Brand & Mobile Sidebar Toggle */}
           <div className="flex items-center gap-3">
             <button
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
           </form>
 
           {/* Right Action Bar */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* View Mode Switcher (Available on both Mobile & PC) */}
             <div className="flex items-center p-0.5 sm:p-1 bg-slate-950 rounded-xl border border-slate-800">
               <button
@@ -171,25 +171,24 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Share / Bookmarklet Button */}
+            {/* Share / Bookmarklet Button (PC/Tablet only to avoid mobile overflow) */}
             <button
               type="button"
               id="open-share-bookmarklet-btn"
               onClick={onOpenBookmarkletModal}
-              className="px-2 py-1.5 sm:px-2.5 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 hover:from-purple-600/30 hover:to-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition flex items-center gap-1 shadow-sm"
+              className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 hover:from-purple-600/30 hover:to-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition shadow-sm"
               title="スマホのシェアボタン & PCブックマークレット追加設定"
             >
               <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-              <span className="hidden md:inline">スマホ共有 & ブックマークレット</span>
-              <span className="md:hidden text-[11px]">共有</span>
+              <span>スマホ共有/拡張</span>
             </button>
 
-            {/* Sync Status Badge (PC + Mobile) */}
+            {/* Sync Status Badge (PC/Tablet only) */}
             <button
               type="button"
               id="sync-status-badge-btn"
               onClick={onOpenSyncModal}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 rounded-xl border text-xs font-medium transition shadow-sm ${
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition shadow-sm ${
                 syncState.isSyncing
                   ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse'
                   : syncState.isOnline
@@ -199,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="PC・スマホ同期設定"
             >
               <Smartphone className="w-3.5 h-3.5 shrink-0" />
-              <span className="font-mono font-bold tracking-wide text-[11px] sm:text-xs">{syncState.syncCode}</span>
+              <span className="font-mono font-bold tracking-wide text-xs">{syncState.syncCode}</span>
             </button>
 
             {/* Primary Add Button */}
