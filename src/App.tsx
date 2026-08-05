@@ -175,12 +175,22 @@ export default function App() {
     []
   );
 
+  const bookmarksRef = React.useRef(bookmarks);
+  useEffect(() => {
+    bookmarksRef.current = bookmarks;
+  }, [bookmarks]);
+
+  const collectionsRef = React.useRef(collections);
+  useEffect(() => {
+    collectionsRef.current = collections;
+  }, [collections]);
+
   // Sync on mount and periodically every 10 seconds for real-time PC <-> Phone sync!
   useEffect(() => {
-    syncWithServer(syncState.syncCode, bookmarks, collections);
+    syncWithServer(syncState.syncCode, bookmarksRef.current, collectionsRef.current);
 
     const interval = setInterval(() => {
-      syncWithServer(syncState.syncCode, bookmarks, collections);
+      syncWithServer(syncState.syncCode, bookmarksRef.current, collectionsRef.current);
     }, 10000);
 
     return () => clearInterval(interval);
@@ -199,8 +209,13 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const quickUrlParam = params.get('quickUrl');
     const urlParam = params.get('url');
-    const textParam = params.get('text');
+    let textParam = params.get('text');
     const titleParam = params.get('title');
+
+    // iOS Shortcuts sometimes injects unencoded URLs (like ?text=https://...&s=1)
+    // URLSearchParams breaks on this. Let's do a raw regex match on the search string if textParam seems incomplete.
+    const rawSearch = decodeURIComponent(window.location.search);
+    const rawMatch = rawSearch.match(/(https?:\/\/[^\s"'>]+)/i);
 
     let targetUrl = quickUrlParam || urlParam || '';
 
@@ -215,6 +230,11 @@ export default function App() {
       if (match) {
         targetUrl = match[1];
       }
+    }
+
+    // Fallback: if we still don't have a valid targetUrl, but rawSearch has a URL, use it
+    if (!targetUrl && rawMatch) {
+      targetUrl = rawMatch[1];
     }
 
     if (targetUrl.trim()) {
