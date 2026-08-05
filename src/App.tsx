@@ -37,10 +37,11 @@ export default function App() {
 
   // State
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
-    const saved = localStorage.getItem('omnimark_bookmarks');
+    const saved = localStorage.getItem('amupoke_bookmarks') || localStorage.getItem('omnimark_bookmarks');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved bookmarks', e);
       }
@@ -49,10 +50,11 @@ export default function App() {
   });
 
   const [collections, setCollections] = useState<Collection[]>(() => {
-    const saved = localStorage.getItem('omnimark_collections');
+    const saved = localStorage.getItem('amupoke_collections') || localStorage.getItem('omnimark_collections');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       } catch (e) {
         console.error('Failed to parse saved collections', e);
       }
@@ -83,17 +85,27 @@ export default function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAddingQuick, setIsAddingQuick] = useState(false);
 
-  // Save to local storage whenever bookmarks or collections change
+  // Reliable local storage persistence
   useEffect(() => {
-    localStorage.setItem('omnimark_bookmarks', JSON.stringify(bookmarks));
+    try {
+      localStorage.setItem('amupoke_bookmarks', JSON.stringify(bookmarks));
+      localStorage.setItem('omnimark_bookmarks', JSON.stringify(bookmarks));
+    } catch (err) {
+      console.error('Failed to write bookmarks to localStorage', err);
+    }
   }, [bookmarks]);
 
   useEffect(() => {
-    localStorage.setItem('omnimark_collections', JSON.stringify(collections));
+    try {
+      localStorage.setItem('amupoke_collections', JSON.stringify(collections));
+      localStorage.setItem('omnimark_collections', JSON.stringify(collections));
+    } catch (err) {
+      console.error('Failed to write collections to localStorage', err);
+    }
   }, [collections]);
 
   useEffect(() => {
-    localStorage.setItem('omnimark_sync_code', syncState.syncCode);
+    localStorage.setItem('amupoke_sync_code', syncState.syncCode);
   }, [syncState.syncCode]);
 
   // Sync logic with backend Express server (/api/sync/:syncCode)
@@ -106,21 +118,25 @@ export default function App() {
         if (getRes.ok) {
           const remoteData = await getRes.json();
           if (remoteData.exists && remoteData.bookmarks) {
-            // Merge remote and local bookmarks cleanly by ID
-            const remoteMap = new Map<string, Bookmark>();
-            remoteData.bookmarks.forEach((b: Bookmark) => remoteMap.set(b.id, b));
-            localBookmarks.forEach((b) => {
-              if (!remoteMap.has(b.id)) {
-                remoteMap.set(b.id, b);
+            // Local-First Merge: prioritize local bookmarks, merge missing remote ones
+            const mergedMap = new Map<string, Bookmark>();
+            // Add local ones first
+            localBookmarks.forEach((b) => mergedMap.set(b.id, b));
+            // Add remote ones only if not present locally
+            remoteData.bookmarks.forEach((b: Bookmark) => {
+              if (!mergedMap.has(b.id)) {
+                mergedMap.set(b.id, b);
               }
             });
-            const mergedBookmarks = Array.from(remoteMap.values());
+            const mergedBookmarks = Array.from(mergedMap.values());
             setBookmarks(mergedBookmarks);
 
             if (remoteData.collections) {
               const colMap = new Map<string, Collection>();
-              remoteData.collections.forEach((c: Collection) => colMap.set(c.id, c));
               localCollections.forEach((c) => colMap.set(c.id, c));
+              remoteData.collections.forEach((c: Collection) => {
+                if (!colMap.has(c.id)) colMap.set(c.id, c);
+              });
               setCollections(Array.from(colMap.values()));
             }
 

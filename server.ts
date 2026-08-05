@@ -196,36 +196,53 @@ app.post('/api/metadata', async (req, res) => {
     console.log(`Could not fetch HTML directly for ${normalizedUrl}, using AI fallback metadata analysis`);
   }
 
-  // Check if URL is X (Twitter) or social media
+  // Specialized domain detectors for Social & Video platforms
   const isXorTwitter = /x\.com|twitter\.com/i.test(domain);
+  const isTikTok = /tiktok\.com/i.test(domain);
+  const isYouTube = /youtube\.com|youtu\.be/i.test(domain);
+  const isInstagram = /instagram\.com/i.test(domain);
+
+  let defaultCategory: 'article' | 'video' | 'tool' | 'product' | 'code' | 'doc' | 'other' = 'article';
+  let platformLabel = '';
+
+  if (isTikTok || isYouTube) {
+    defaultCategory = 'video';
+    platformLabel = isTikTok ? 'TikTok' : 'YouTube';
+  } else if (isXorTwitter) {
+    defaultCategory = 'article';
+    platformLabel = 'X (Twitter)';
+  } else if (isInstagram) {
+    defaultCategory = 'article';
+    platformLabel = 'Instagram';
+  }
 
   // Use Gemini AI to enrich title, generate Japanese summary, tags, and category
   const ai = getGeminiClient();
   let aiMetadata = {
-    title: extractedTitle || (isXorTwitter ? 'X (旧Twitter) ポスト' : domain),
-    description: extractedDescription || `Web page bookmark from ${domain}`,
-    category: (isXorTwitter ? 'article' : 'article') as 'article' | 'video' | 'tool' | 'product' | 'code' | 'doc' | 'other',
-    suggestedTags: [isXorTwitter ? 'X' : domain.replace(/^www\./, '').split('.')[0], 'Web'],
-    aiSummary: `${domain} の詳細情報・Webコンテンツです。`,
-    aiKeyTakeaways: ['Webページコンテンツ', '詳細情報はリンク先を参照'],
+    title: extractedTitle || (platformLabel ? `${platformLabel} 投稿/コンテンツ` : domain),
+    description: extractedDescription || `Bookmark from ${domain}`,
+    category: defaultCategory,
+    suggestedTags: [platformLabel || domain.replace(/^www\./, '').split('.')[0], 'Web'],
+    aiSummary: `${platformLabel || domain} の動画・投稿コンテンツです。`,
+    aiKeyTakeaways: ['SNS / 動画コンテンツ', '詳細情報はリンク先を参照'],
   };
 
   if (ai) {
     try {
       const prompt = `Analyze this bookmark URL and extracted page metadata, and generate rich, clean Japanese metadata for a bookmark manager.
-If it is an X (Twitter) post, YouTube video, tech blog, or documentation, make sure to capture key details.
+If it is a TikTok video, X (Twitter) post, Instagram post, YouTube video, tech blog, product, or documentation, make sure to capture key details.
 
 URL: ${normalizedUrl}
 Domain: ${domain}
-Is X / Social Media: ${isXorTwitter ? 'Yes' : 'No'}
+Platform Type: ${platformLabel || 'Web Site'}
 Extracted Title: ${extractedTitle}
 Extracted Description: ${extractedDescription}
 
 Output JSON matching this exact structure:
-- title: Refined clean Japanese title (or concise headline for X post/article)
+- title: Refined clean Japanese title (or clear concise headline for TikTok/X/YouTube/Instagram content)
 - description: Informative 1-2 sentence Japanese description capturing main content
-- category: One of ['article', 'video', 'tool', 'product', 'code', 'doc', 'other']
-- suggestedTags: Array of 3 to 5 relevant Japanese or English tags
+- category: One of ['article', 'video', 'tool', 'product', 'code', 'doc', 'other'] (use 'video' for TikTok/YouTube, 'article' for X/blogs/Instagram)
+- suggestedTags: Array of 3 to 5 relevant Japanese or English tags (include platform tag like 'TikTok', 'X', 'YouTube' if applicable)
 - aiSummary: Comprehensive 2-3 sentence summary in Japanese explaining what this bookmark is about
 - aiKeyTakeaways: Array of 2 to 4 bullet points highlighting key insights, features, or points in Japanese`;
 
@@ -261,10 +278,10 @@ Output JSON matching this exact structure:
       if (aiResponse.text) {
         const parsed = JSON.parse(aiResponse.text.trim());
         aiMetadata = {
-          title: parsed.title || extractedTitle || domain,
+          title: parsed.title || extractedTitle || (platformLabel ? `${platformLabel} 投稿` : domain),
           description: parsed.description || extractedDescription || '',
-          category: parsed.category || 'article',
-          suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : ['Web'],
+          category: parsed.category || defaultCategory,
+          suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : [platformLabel || 'Web'],
           aiSummary: parsed.aiSummary || '',
           aiKeyTakeaways: Array.isArray(parsed.aiKeyTakeaways) ? parsed.aiKeyTakeaways : [],
         };
