@@ -235,31 +235,41 @@ export default function App() {
         body: JSON.stringify({ url: urlToAdd }),
       });
 
-      let newBm: Bookmark;
-      if (res.ok) {
-        const data = await res.json();
-        newBm = {
-          id: `bm-${Date.now()}`,
-          url: data.url || urlToAdd,
-          title: customTitle || data.title || urlToAdd,
-          description: data.description || '',
-          favicon: data.favicon || `https://www.google.com/s2/favicons?domain=${urlToAdd}&sz=64`,
-          coverImage: data.coverImage,
-          category: data.category || 'article',
-          tags: data.suggestedTags || ['Web'],
-          collectionId: collections[0]?.id || 'work',
-          notes: '',
-          isFavorite: false,
-          isPinned: false,
-          isArchived: false,
-          readStatus: 'unread',
-          rating: 0,
-          aiSummary: data.aiSummary || '',
-          aiKeyTakeaways: data.aiKeyTakeaways || [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      } else {
+      let newBm: Bookmark | null = null;
+      try {
+        if (res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            newBm = {
+              id: `bm-${Date.now()}`,
+              url: data.url || urlToAdd,
+              title: customTitle || data.title || urlToAdd,
+              description: data.description || '',
+              favicon: data.favicon || `https://www.google.com/s2/favicons?domain=${urlToAdd}&sz=64`,
+              coverImage: data.coverImage,
+              category: data.category || 'article',
+              tags: data.suggestedTags || ['Web'],
+              collectionId: collections[0]?.id || 'work',
+              notes: '',
+              isFavorite: false,
+              isPinned: false,
+              isArchived: false,
+              readStatus: 'unread',
+              rating: 0,
+              aiSummary: data.aiSummary || '',
+              aiKeyTakeaways: data.aiKeyTakeaways || [],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+          }
+        }
+      } catch (parseErr) {
+        console.warn('API Response parsing failed', parseErr);
+      }
+
+      if (!newBm) {
+        // Fallback if API fails or returns HTML (Vercel SPA fallback)
         newBm = {
           id: `bm-${Date.now()}`,
           url: urlToAdd,
@@ -282,12 +292,42 @@ export default function App() {
         };
       }
 
-      const updated = [newBm, ...bookmarks];
-      setBookmarks(updated);
-      syncWithServer(syncState.syncCode, updated, collections);
+      setBookmarks((prev) => {
+        const updated = [newBm!, ...prev];
+        // Note: syncWithServer will use the latest state on next tick, but we can call it here with new array
+        syncWithServer(syncState.syncCode, updated, collections);
+        return updated;
+      });
       showToast(`✨ 「${newBm.title.slice(0, 20)}...」を保存しました`);
     } catch (err) {
-      console.error(err);
+      console.error('Network error during quick add', err);
+      // Even on hard network error, save it locally!
+      const fallbackBm: Bookmark = {
+        id: `bm-${Date.now()}`,
+        url: urlToAdd,
+        title: customTitle || urlToAdd,
+        description: '',
+        favicon: `https://www.google.com/s2/favicons?domain=${urlToAdd}&sz=64`,
+        category: 'article',
+        tags: ['Web'],
+        collectionId: collections[0]?.id || 'work',
+        notes: '',
+        isFavorite: false,
+        isPinned: false,
+        isArchived: false,
+        readStatus: 'unread',
+        rating: 0,
+        aiSummary: 'Webページブックマーク (オフライン保存)',
+        aiKeyTakeaways: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setBookmarks((prev) => {
+        const updated = [fallbackBm, ...prev];
+        syncWithServer(syncState.syncCode, updated, collections);
+        return updated;
+      });
+      showToast(`✨ (オフライン) 「${fallbackBm.title.slice(0, 20)}...」を保存しました`);
     } finally {
       setIsAddingQuick(false);
     }
