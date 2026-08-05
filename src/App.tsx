@@ -208,41 +208,42 @@ export default function App() {
   const checkUrlParamsForQuickAdd = useCallback(() => {
     if (!window.location.search) return;
 
-    const params = new URLSearchParams(window.location.search);
-    const quickUrlParam = params.get('quickUrl');
-    const urlParam = params.get('url');
-    let textParam = params.get('text');
-    const titleParam = params.get('title');
+    let targetUrl = '';
+    const searchParams = new URLSearchParams(window.location.search);
+    const quickUrlParam = searchParams.get('quickUrl');
+    const urlParam = searchParams.get('url');
+    let textParam = searchParams.get('text');
+    const titleParam = searchParams.get('title');
 
-    // iOS Shortcuts sometimes injects unencoded URLs (like ?text=https://...&s=1)
-    // URLSearchParams breaks on this. Let's do a raw regex match on the search string if textParam seems incomplete.
-    const rawSearch = decodeURIComponent(window.location.search);
-    const rawMatch = rawSearch.match(/(https?:\/\/[^\s"'>]+)/i);
+    targetUrl = quickUrlParam || urlParam || '';
 
-    let targetUrl = quickUrlParam || urlParam || '';
-
-    // Extract HTTP/HTTPS URL from text if shared from apps like TikTok, X, etc.
+    // Safely extract from textParam
     if (!targetUrl && textParam) {
       const match = textParam.match(/(https?:\/\/[^\s"'>]+)/i);
-      if (match) {
-        targetUrl = match[1];
-      }
-    } else if (targetUrl && !/^https?:\/\//i.test(targetUrl)) {
-      const match = targetUrl.match(/(https?:\/\/[^\s"'>]+)/i);
-      if (match) {
-        targetUrl = match[1];
-      }
+      if (match) targetUrl = match[1];
     }
 
-    // Fallback: if we still don't have a valid targetUrl, but rawSearch has a URL, use it
-    if (!targetUrl && rawMatch) {
-      targetUrl = rawMatch[1];
+    // iOS Shortcuts unencoded fallback using raw search
+    if (!targetUrl) {
+      let rawSearch = window.location.search;
+      try {
+        rawSearch = decodeURIComponent(window.location.search);
+      } catch (e) {
+        console.warn('Malformed URI in search, proceeding with raw string');
+      }
+      const rawMatch = rawSearch.match(/(https?:\/\/[^\s"'>]+)/i);
+      if (rawMatch) {
+        targetUrl = rawMatch[1];
+      }
     }
 
     if (targetUrl.trim()) {
       handleQuickAddUrl(targetUrl.trim(), titleParam || undefined);
       showToast('📱 共有機能 / ブックマークレットから新しいリンクをAI保存しました！');
       // Clean query params from address bar so it doesn't trigger again
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (textParam || rawSearch.includes('?text=')) {
+      showToast(`⚠️ URLを抽出できませんでした: ${textParam || rawSearch}`);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
