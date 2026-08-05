@@ -49,7 +49,7 @@ export const BookmarkletModal: React.FC<BookmarkletModalProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'OmniMark テスト記事',
+          title: 'AMUPOKE テスト記事',
           text: 'AIでスマートにブックマーク保存！',
           url: `${appOrigin}?url=https://github.com/trending&title=GitHub%20Trending&sync=${syncCode}`,
         });
@@ -165,15 +165,15 @@ export const BookmarkletModal: React.FC<BookmarkletModalProps> = ({
               </div>
 
               {/* Native Share Test Button */}
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between gap-3">
+              <div className="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <span className="font-bold text-white block text-xs">スマホの共有動作テスト</span>
-                  <span className="text-[11px] text-slate-400">現在お使いの端末でシェア機能をテストします</span>
+                  <span className="font-bold text-slate-800 block text-xs">スマホの共有動作テスト</span>
+                  <span className="text-[11px] text-slate-500">現在お使いの端末でシェア機能をテストします</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleTestWebShare}
-                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg transition shrink-0 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-md transition shrink-0 flex items-center gap-1.5"
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>シェアテスト</span>
@@ -182,13 +182,13 @@ export const BookmarkletModal: React.FC<BookmarkletModalProps> = ({
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="leading-relaxed">
-                PC（Chrome / Safari / Edge / Firefox）のブックマークバーに下記のボタンをドラッグ＆ドロップ登録してください。どんなWebサイトの閲覧時でも1クリックでOmniMarkにAI要約保存されます。
+              <p className="leading-relaxed text-slate-600">
+                PC（Chrome / Safari / Edge / Firefox）のブックマークバーに下記のボタンをドラッグ＆ドロップ登録してください。どんなWebサイトの閲覧時でも1クリックでAMUPOKEにAI要約保存されます。
               </p>
 
               {/* Drag Target Button */}
-              <div className="p-6 bg-slate-950 border border-indigo-500/30 rounded-2xl text-center space-y-3">
-                <span className="text-slate-400 font-medium block text-xs">
+              <div className="p-6 bg-indigo-50/50 border border-indigo-200 rounded-2xl text-center space-y-3 shadow-inner">
+                <span className="text-slate-500 font-medium block text-xs">
                   👇 下のボタンをブラウザのブックマークバーへドラッグ！
                 </span>
 
@@ -198,13 +198,13 @@ export const BookmarkletModal: React.FC<BookmarkletModalProps> = ({
                   className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/30 cursor-grab active:cursor-grabbing hover:scale-105 transition transform"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>+ OmniMarkに保存</span>
+                  <span>+ AMUPOKEに保存</span>
                 </a>
               </div>
 
               {/* Code Copy */}
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <span className="font-semibold text-slate-200 block">手動用スクリプトコード</span>
+              <div className="space-y-2 pt-2 border-t border-slate-200">
+                <span className="font-semibold text-slate-700 block">手動用スクリプトコード</span>
                 <div className="flex gap-2">
                   <input
                     type="text"

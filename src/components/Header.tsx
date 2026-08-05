@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <h1 className="font-extrabold text-base sm:text-xl tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    AMUPOKE
+                    AMUPOKE <span className="text-xs sm:text-sm font-semibold text-slate-500">（あむポケ）</span>
                   </h1>
                   <span className="inline-block text-[9px] sm:text-[10px] font-bold tracking-wide uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 shrink-0">
                     ver 1.0.0
