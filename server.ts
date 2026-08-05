@@ -152,30 +152,37 @@ app.post('/api/metadata', async (req, res) => {
     if (response.ok) {
       const html = await response.text();
 
-      // Extract title
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch && titleMatch[1]) {
-        extractedTitle = titleMatch[1].trim();
-      }
+      // Helper to extract meta tag content regardless of attribute order
+      const getMeta = (keys: string[]): string => {
+        for (const key of keys) {
+          const escaped = key.replace(/[:.]/g, '\\$&');
+          const r1 = new RegExp(`<meta[^>]*(?:property|name)=["']${escaped}["'][^>]*content=["']([^"']+)["']`, 'i');
+          const m1 = html.match(r1);
+          if (m1 && m1[1]) return m1[1].trim();
 
-      // Extract og:title
-      const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
-      if (ogTitleMatch && ogTitleMatch[1]) {
-        extractedTitle = ogTitleMatch[1].trim();
+          const r2 = new RegExp(`<meta[^>]*content=["']([^"']+)["'][^>]*(?:property|name)=["']${escaped}["']`, 'i');
+          const m2 = html.match(r2);
+          if (m2 && m2[1]) return m2[1].trim();
+        }
+        return '';
+      };
+
+      // Extract title
+      const pageTitle = (html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1] || '').trim();
+      const metaTitle = getMeta(['og:title', 'twitter:title']);
+      if (metaTitle) {
+        extractedTitle = metaTitle;
+      } else if (pageTitle) {
+        extractedTitle = pageTitle;
       }
 
       // Extract description
-      const descMatch =
-        html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i) ||
-        html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
-      if (descMatch && descMatch[1]) {
-        extractedDescription = descMatch[1].trim();
-      }
+      extractedDescription = getMeta(['og:description', 'twitter:description', 'description']);
 
-      // Extract og:image
-      const ogImgMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
-      if (ogImgMatch && ogImgMatch[1]) {
-        let imgUrl = ogImgMatch[1].trim();
+      // Extract cover image
+      const rawCover = getMeta(['og:image', 'twitter:image', 'twitter:image:src', 'og:image:src']);
+      if (rawCover) {
+        let imgUrl = rawCover;
         if (imgUrl.startsWith('//')) {
           imgUrl = 'https:' + imgUrl;
         } else if (imgUrl.startsWith('/')) {
@@ -189,33 +196,38 @@ app.post('/api/metadata', async (req, res) => {
     console.log(`Could not fetch HTML directly for ${normalizedUrl}, using AI fallback metadata analysis`);
   }
 
+  // Check if URL is X (Twitter) or social media
+  const isXorTwitter = /x\.com|twitter\.com/i.test(domain);
+
   // Use Gemini AI to enrich title, generate Japanese summary, tags, and category
   const ai = getGeminiClient();
   let aiMetadata = {
-    title: extractedTitle || domain,
+    title: extractedTitle || (isXorTwitter ? 'X (旧Twitter) ポスト' : domain),
     description: extractedDescription || `Web page bookmark from ${domain}`,
-    category: 'article' as const,
-    suggestedTags: [domain.replace(/^www\./, '').split('.')[0], 'Web'],
-    aiSummary: `${domain} のコンテンツです。`,
+    category: (isXorTwitter ? 'article' : 'article') as 'article' | 'video' | 'tool' | 'product' | 'code' | 'doc' | 'other',
+    suggestedTags: [isXorTwitter ? 'X' : domain.replace(/^www\./, '').split('.')[0], 'Web'],
+    aiSummary: `${domain} の詳細情報・Webコンテンツです。`,
     aiKeyTakeaways: ['Webページコンテンツ', '詳細情報はリンク先を参照'],
   };
 
   if (ai) {
     try {
-      const prompt = `Analyze this web bookmark URL and extracted information, and generate clean Japanese metadata for a bookmark manager.
+      const prompt = `Analyze this bookmark URL and extracted page metadata, and generate rich, clean Japanese metadata for a bookmark manager.
+If it is an X (Twitter) post, YouTube video, tech blog, or documentation, make sure to capture key details.
 
 URL: ${normalizedUrl}
 Domain: ${domain}
+Is X / Social Media: ${isXorTwitter ? 'Yes' : 'No'}
 Extracted Title: ${extractedTitle}
 Extracted Description: ${extractedDescription}
 
 Output JSON matching this exact structure:
-- title: Refined clean Japanese title or original title
-- description: Concise 1-2 sentence Japanese description
+- title: Refined clean Japanese title (or concise headline for X post/article)
+- description: Informative 1-2 sentence Japanese description capturing main content
 - category: One of ['article', 'video', 'tool', 'product', 'code', 'doc', 'other']
 - suggestedTags: Array of 3 to 5 relevant Japanese or English tags
-- aiSummary: Clear 1-2 sentence summary in Japanese
-- aiKeyTakeaways: Array of 2 to 3 bullet points highlighting main takeaways in Japanese`;
+- aiSummary: Comprehensive 2-3 sentence summary in Japanese explaining what this bookmark is about
+- aiKeyTakeaways: Array of 2 to 4 bullet points highlighting key insights, features, or points in Japanese`;
 
       const aiResponse = await ai.models.generateContent({
         model: 'gemini-3.6-flash',
