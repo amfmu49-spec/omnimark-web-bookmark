@@ -204,8 +204,10 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Check URL query parameters for Bookmarklet or Mobile Share Target on mount
-  useEffect(() => {
+  // Check URL query parameters for Bookmarklet or Mobile Share Target
+  const checkUrlParamsForQuickAdd = useCallback(() => {
+    if (!window.location.search) return;
+
     const params = new URLSearchParams(window.location.search);
     const quickUrlParam = params.get('quickUrl');
     const urlParam = params.get('url');
@@ -240,10 +242,30 @@ export default function App() {
     if (targetUrl.trim()) {
       handleQuickAddUrl(targetUrl.trim(), titleParam || undefined);
       showToast('📱 共有機能 / ブックマークレットから新しいリンクをAI保存しました！');
-      // Clean query params from address bar
+      // Clean query params from address bar so it doesn't trigger again
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    // Check on mount
+    checkUrlParamsForQuickAdd();
+
+    // Check when app comes to foreground or URL changes (iOS PWA / Safari tab resume)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkUrlParamsForQuickAdd();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('popstate', checkUrlParamsForQuickAdd);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('popstate', checkUrlParamsForQuickAdd);
+    };
+  }, [checkUrlParamsForQuickAdd]);
 
   // Quick Add URL via top header, bookmarklet, or mobile share target
   const handleQuickAddUrl = async (urlToAdd: string, customTitle?: string) => {
