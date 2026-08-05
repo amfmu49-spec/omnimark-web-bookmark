@@ -1,0 +1,6 @@
+{
+  "name": "OmniMark - 萬能Webブックマーク",
+  "description": "PC・スマホ対応のリアルタイム同期Webブックマークアプリ。AIによる自動タグ付け・要約、高度な検索、コレクション管理、ブックマークレット機能搭載。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
