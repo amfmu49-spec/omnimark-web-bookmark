@@ -133,24 +133,70 @@ app.post('/api/metadata', async (req, res) => {
   let extractedDescription = '';
   let extractedCoverImage = '';
 
-  // Attempt to fetch raw HTML page title and metadata
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+  const isXorTwitter = /x\.com|twitter\.com/i.test(domain);
+  const isTikTok = /tiktok\.com/i.test(domain);
+  let isOEmbedHandled = false;
 
-    const response = await fetch(normalizedUrl, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
-      },
-    });
+  // Handle OEmbed for social platforms to avoid Captcha/Login walls
+  if (isXorTwitter || isTikTok) {
+    try {
+      let finalUrl = normalizedUrl;
+      if (isTikTok && /vt\.tiktok\.com/i.test(domain)) {
+        // Resolve shortened TikTok URL
+        const redirectRes = await fetch(normalizedUrl, { redirect: 'follow' });
+        finalUrl = redirectRes.url;
+      }
 
-    clearTimeout(timeout);
+      let oembedUrl = '';
+      if (isXorTwitter) {
+        const twitterCompatUrl = finalUrl.replace(/x\.com/i, 'twitter.com');
+        oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(twitterCompatUrl)}`;
+      } else if (isTikTok) {
+        oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(finalUrl)}`;
+      }
 
-    if (response.ok) {
-      const html = await response.text();
+      const oembedRes = await fetch(oembedUrl);
+      if (oembedRes.ok) {
+        const data = await oembedRes.json();
+        if (isXorTwitter) {
+          let tweetText = '';
+          const pMatch = data.html?.match(/<p[^>]*>([^<]+)<\/p>/i);
+          if (pMatch && pMatch[1]) {
+            tweetText = pMatch[1].trim();
+          }
+          extractedTitle = tweetText ? `${data.author_name}の投稿: "${tweetText}"` : `${data.author_name}のTwitter投稿`;
+          extractedDescription = `X (旧Twitter) での ${data.author_name} (@${data.author_url?.split('/').pop()}) のポストです。`;
+        } else if (isTikTok) {
+          extractedTitle = data.title ? `${data.author_name}のTikTok動画: "${data.title}"` : `${data.author_name}のTikTok動画`;
+          extractedDescription = `TikTok で投稿された ${data.author_name} のショート動画です。`;
+          extractedCoverImage = data.thumbnail_url || '';
+        }
+        isOEmbedHandled = true;
+      }
+    } catch (e) {
+      console.warn('OEmbed fetch failed, falling back to standard fetch', e);
+    }
+  }
+
+  // Attempt to fetch raw HTML page title and metadata if not handled by OEmbed
+  if (!isOEmbedHandled) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+
+      const response = await fetch(normalizedUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+        },
+      });
+
+      clearTimeout(timeout);
+
+      if (response.ok) {
+        const html = await response.text();
 
       // Helper to extract meta tag content regardless of attribute order
       const getMeta = (keys: string[]): string => {
@@ -195,10 +241,9 @@ app.post('/api/metadata', async (req, res) => {
   } catch (err) {
     console.log(`Could not fetch HTML directly for ${normalizedUrl}, using AI fallback metadata analysis`);
   }
+}
 
   // Specialized domain detectors for Social & Video platforms
-  const isXorTwitter = /x\.com|twitter\.com/i.test(domain);
-  const isTikTok = /tiktok\.com/i.test(domain);
   const isYouTube = /youtube\.com|youtu\.be/i.test(domain);
   const isInstagram = /instagram\.com/i.test(domain);
 
