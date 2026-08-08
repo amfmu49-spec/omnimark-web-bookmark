@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
                     AMUPOKE <span className="text-xs sm:text-sm font-semibold text-slate-500">（あむポケ）</span>
                   </h1>
                   <span className="inline-block text-[9px] sm:text-[10px] font-bold tracking-wide uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200 shrink-0">
-                    ver 1.0.0
+                    ver 1.2.0
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 hidden md:block">萬能Webブックマーク & AIナレッジハブ</p>
