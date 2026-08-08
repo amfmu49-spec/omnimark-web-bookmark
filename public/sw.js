@@ -1,5 +1,5 @@
-// Service Worker for OmniMark PWA & Share Target
-const CACHE_NAME = 'omnimark-v1';
+// Service Worker for AMUPOKE PWA & Share Target
+const CACHE_NAME = 'amupoke-v2.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
