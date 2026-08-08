@@ -430,7 +430,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Version Info Footer */}
         <div className="pt-2 text-center">
-          <span className="text-[10px] text-slate-500 font-mono font-medium">AMUPOKE（あむポケ） ver 1.0.0 (Sync & AI)</span>
+          <span className="text-[10px] text-slate-500 font-mono font-medium">AMUPOKE（あむポケ） ver 1.2.0 (Sync & AI)</span>
         </div>
       </div>
     </div>
