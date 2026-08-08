@@ -22,6 +22,7 @@ import {
   MoreVertical,
 } from 'lucide-react';
 import { Bookmark, Collection, BookmarkCategory } from '../types';
+import { getAppOrWebUrl } from '../utils/url';
 
 interface BookmarkGridProps {
   bookmarks: Bookmark[];
@@ -251,7 +252,7 @@ export const BookmarkGrid: React.FC<BookmarkGridProps> = ({
 
                   {/* Open Direct External Link */}
                   <a
-                    href={bm.url}
+                    href={getAppOrWebUrl(bm.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}

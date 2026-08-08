@@ -131,7 +131,8 @@ app.post('/api/metadata', async (req, res) => {
 
   let extractedTitle = domain;
   let extractedDescription = '';
-  let extractedCoverImage = '';
+  let UniversalCoverImage = '';
+  let customTags: string[] = [];
 
   const isXorTwitter = /x\.com|twitter\.com/i.test(domain);
   const isTikTok = /tiktok\.com/i.test(domain);
@@ -164,12 +165,26 @@ app.post('/api/metadata', async (req, res) => {
           if (pMatch && pMatch[1]) {
             tweetText = pMatch[1].trim();
           }
-          extractedTitle = tweetText ? `${data.author_name}の投稿: "${tweetText}"` : `${data.author_name}のTwitter投稿`;
-          extractedDescription = `X (旧Twitter) での ${data.author_name} (@${data.author_url?.split('/').pop()}) のポストです。`;
+          // Set X title to author's name with handle, and description to the actual tweet text (first few characters/snippet)
+          const handle = data.author_url?.split('/').pop() || '';
+          extractedTitle = `${data.author_name} (@${handle})`;
+          extractedDescription = tweetText || 'X (Twitter) 投稿の本文がありません。';
+          
+          // Extract hashtags for fallback tags
+          if (tweetText) {
+            const hashtags = tweetText.match(/#[^\s#]+/g) || [];
+            customTags = hashtags.map((h: string) => h.slice(1).trim()).filter((h: string) => h.length > 0);
+          }
         } else if (isTikTok) {
-          extractedTitle = data.title ? `${data.author_name}のTikTok動画: "${data.title}"` : `${data.author_name}のTikTok動画`;
-          extractedDescription = `TikTok で投稿された ${data.author_name} のショート動画です。`;
-          extractedCoverImage = data.thumbnail_url || '';
+          extractedTitle = `${data.author_name}のTikTok動画`;
+          extractedDescription = data.title || 'TikTokショート動画です。';
+          UniversalCoverImage = data.thumbnail_url || '';
+
+          // Extract hashtags from TikTok caption
+          if (data.title) {
+            const hashtags = data.title.match(/#[^\s#]+/g) || [];
+            customTags = hashtags.map((h: string) => h.slice(1).trim()).filter((h: string) => h.length > 0);
+          }
         }
         isOEmbedHandled = true;
       }
@@ -235,7 +250,7 @@ app.post('/api/metadata', async (req, res) => {
           const origin = new URL(normalizedUrl).origin;
           imgUrl = origin + imgUrl;
         }
-        extractedCoverImage = imgUrl;
+        UniversalCoverImage = imgUrl;
       }
     }
   } catch (err) {
@@ -283,8 +298,8 @@ app.post('/api/metadata', async (req, res) => {
     title: extractedTitle && extractedTitle !== domain ? extractedTitle : (platformLabel ? `${platformLabel} 投稿` : domain),
     description: extractedDescription || `Bookmark from ${domain}`,
     category: defaultCategory,
-    suggestedTags: [platformLabel || domain.replace(/^www\./, '').split('.')[0], 'Web'],
-    aiSummary: fallbackSummary,
+    suggestedTags: customTags.length > 0 ? Array.from(new Set([platformLabel || 'Web', ...customTags])) : [platformLabel || domain.replace(/^www\./, '').split('.')[0], 'Web'],
+    aiSummary: extractedDescription || fallbackSummary,
     aiKeyTakeaways: [
       platformLabel ? `${platformLabel} コンテンツ` : 'Webページ',
       extractedTitle || '詳細情報はリンク先を参照',
@@ -360,7 +375,7 @@ Output JSON matching this exact structure:
     title: aiMetadata.title,
     description: aiMetadata.description,
     favicon: defaultFavicon,
-    coverImage: extractedCoverImage || `https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80`,
+    coverImage: UniversalCoverImage || `https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80`,
     category: aiMetadata.category,
     suggestedTags: aiMetadata.suggestedTags,
     aiSummary: aiMetadata.aiSummary,

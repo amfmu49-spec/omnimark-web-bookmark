@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Bookmark, Collection, BookmarkCategory } from '../types';
+import { getAppOrWebUrl } from '../utils/url';
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -186,7 +187,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                         )}
                       </button>
                       <a
-                        href={bm.url}
+                        href={getAppOrWebUrl(bm.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bookmark, Collection } from '../types';
 import { Clock, BookOpen, CheckCircle2, ExternalLink, Sparkles, Star } from 'lucide-react';
+import { getAppOrWebUrl } from '../utils/url';
 
 interface BookmarkKanbanProps {
   bookmarks: Bookmark[];
@@ -102,7 +103,7 @@ export const BookmarkKanban: React.FC<BookmarkKanbanProps> = ({
                     <div className="flex items-center justify-between pt-1 text-[10px]">
                       <span className="text-indigo-400">#{bm.category}</span>
                       <a
-                        href={bm.url}
+                        href={getAppOrWebUrl(bm.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
