@@ -29,7 +29,7 @@ export default function App() {
 
   const [syncState, setSyncState] = useState<SyncState>({
     syncCode: getInitialSyncCode(),
-    lastSyncedAt: null,
+    lastSyncedAt: localStorage.getItem('amupoke_last_synced_at') || null,
     isSyncing: false,
     isOnline: true,
     connectedDevicesCount: 1,
@@ -108,50 +108,71 @@ export default function App() {
     localStorage.setItem('amupoke_sync_code', syncState.syncCode);
   }, [syncState.syncCode]);
 
+  useEffect(() => {
+    if (syncState.lastSyncedAt) {
+      localStorage.setItem('amupoke_last_synced_at', syncState.lastSyncedAt);
+    }
+  }, [syncState.lastSyncedAt]);
+
   // Sync logic with backend Express server (/api/sync/:syncCode)
   const syncWithServer = useCallback(
-    async (codeToSync: string, localBookmarks: Bookmark[], localCollections: Collection[]) => {
+    async (codeToSync: string, localBookmarks: Bookmark[], localCollections: Collection[], forcePush = false) => {
       setSyncState((prev) => ({ ...prev, isSyncing: true }));
       try {
-        // Fetch remote state
+        if (forcePush) {
+          // Push local state directly to server to overwrite it (e.g. after deletion)
+          const postRes = await fetch(`/api/sync/${codeToSync}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bookmarks: localBookmarks,
+              collections: localCollections,
+            }),
+          });
+          if (postRes.ok) {
+            const data = await postRes.json();
+            setSyncState((prev) => ({
+              ...prev,
+              isSyncing: false,
+              isOnline: true,
+              lastSyncedAt: data.updatedAt,
+            }));
+          }
+          return;
+        }
+
+        // Standard poll: Fetch remote state
         const getRes = await fetch(`/api/sync/${codeToSync}`);
         if (getRes.ok) {
           const remoteData = await getRes.json();
           if (remoteData.exists && remoteData.bookmarks) {
-            // Local-First Merge: prioritize local bookmarks, merge missing remote ones
-            const mergedMap = new Map<string, Bookmark>();
-            // Add local ones first
-            localBookmarks.forEach((b) => mergedMap.set(b.id, b));
-            // Add remote ones only if not present locally
-            remoteData.bookmarks.forEach((b: Bookmark) => {
-              if (!mergedMap.has(b.id)) {
-                mergedMap.set(b.id, b);
+            const remoteTime = new Date(remoteData.updatedAt).getTime();
+            const localTime = syncState.lastSyncedAt ? new Date(syncState.lastSyncedAt).getTime() : 0;
+
+            if (remoteTime > localTime) {
+              // Remote is newer, overwrite local state (propagates deletes and edits from other devices)
+              setBookmarks(remoteData.bookmarks);
+              if (remoteData.collections) {
+                setCollections(remoteData.collections);
               }
-            });
-            const mergedBookmarks = Array.from(mergedMap.values());
-            setBookmarks(mergedBookmarks);
-
-            if (remoteData.collections) {
-              const colMap = new Map<string, Collection>();
-              localCollections.forEach((c) => colMap.set(c.id, c));
-              remoteData.collections.forEach((c: Collection) => {
-                if (!colMap.has(c.id)) colMap.set(c.id, c);
-              });
-              setCollections(Array.from(colMap.values()));
+              setSyncState((prev) => ({
+                ...prev,
+                isSyncing: false,
+                isOnline: true,
+                lastSyncedAt: remoteData.updatedAt,
+              }));
+            } else {
+              // Remote is older or equal, update lastSyncedAt to keep in sync
+              setSyncState((prev) => ({
+                ...prev,
+                isSyncing: false,
+                isOnline: true,
+                lastSyncedAt: remoteData.updatedAt || prev.lastSyncedAt,
+              }));
             }
-
-            // Push updated merged state back to server
-            await fetch(`/api/sync/${codeToSync}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                bookmarks: mergedBookmarks,
-                collections: localCollections,
-              }),
-            });
           } else {
-            // Initial upload to server
-            await fetch(`/api/sync/${codeToSync}`, {
+            // Server has no data, upload local data as initial state
+            const postRes = await fetch(`/api/sync/${codeToSync}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -159,20 +180,23 @@ export default function App() {
                 collections: localCollections,
               }),
             });
+            if (postRes.ok) {
+              const data = await postRes.json();
+              setSyncState((prev) => ({
+                ...prev,
+                isSyncing: false,
+                isOnline: true,
+                lastSyncedAt: data.updatedAt,
+              }));
+            }
           }
         }
-        setSyncState((prev) => ({
-          ...prev,
-          isSyncing: false,
-          isOnline: true,
-          lastSyncedAt: new Date().toISOString(),
-        }));
       } catch (err) {
         console.log('Server sync attempt offline / fallback', err);
         setSyncState((prev) => ({ ...prev, isSyncing: false, isOnline: false }));
       }
     },
-    []
+    [syncState.lastSyncedAt]
   );
 
   const bookmarksRef = React.useRef(bookmarks);
@@ -338,7 +362,7 @@ export default function App() {
       setBookmarks((prev) => {
         const updated = [newBm!, ...prev];
         // Note: syncWithServer will use the latest state on next tick, but we can call it here with new array
-        syncWithServer(syncState.syncCode, updated, collections);
+        syncWithServer(syncState.syncCode, updated, collections, true);
         return updated;
       });
       showToast(`✨ 「${newBm.title.slice(0, 20)}...」を保存しました`);
@@ -367,7 +391,7 @@ export default function App() {
       };
       setBookmarks((prev) => {
         const updated = [fallbackBm, ...prev];
-        syncWithServer(syncState.syncCode, updated, collections);
+        syncWithServer(syncState.syncCode, updated, collections, true);
         return updated;
       });
       showToast(`✨ (オフライン) 「${fallbackBm.title.slice(0, 20)}...」を保存しました`);
@@ -397,7 +421,7 @@ export default function App() {
     };
     const updated = [newBm, ...bookmarks];
     setBookmarks(updated);
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Toggle Favorite
@@ -407,21 +431,21 @@ export default function App() {
     if (selectedBookmarkDetail?.id === id) {
       setSelectedBookmarkDetail((prev) => (prev ? { ...prev, isFavorite: !prev.isFavorite } : null));
     }
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Toggle Pin
   const handleTogglePin = (id: string) => {
     const updated = bookmarks.map((b) => (b.id === id ? { ...b, isPinned: !b.isPinned } : b));
     setBookmarks(updated);
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Update Read Status
   const handleUpdateReadStatus = (id: string, status: 'unread' | 'reading' | 'read') => {
     const updated = bookmarks.map((b) => (b.id === id ? { ...b, readStatus: status } : b));
     setBookmarks(updated);
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Delete Bookmark
@@ -431,7 +455,7 @@ export default function App() {
     if (selectedBookmarkDetail?.id === id) {
       setSelectedBookmarkDetail(null);
     }
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Update Bookmark details from Detail Modal
@@ -439,7 +463,7 @@ export default function App() {
     const updated = bookmarks.map((b) => (b.id === updatedBm.id ? updatedBm : b));
     setBookmarks(updated);
     setSelectedBookmarkDetail(updatedBm);
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Add Custom Collection
@@ -452,7 +476,7 @@ export default function App() {
     };
     const updated = [...collections, newCol];
     setCollections(updated);
-    syncWithServer(syncState.syncCode, bookmarks, updated);
+    syncWithServer(syncState.syncCode, bookmarks, updated, true);
   };
 
   // Import Bookmarks
@@ -462,7 +486,7 @@ export default function App() {
     imported.forEach((b) => mergedMap.set(b.id, b));
     const updated = Array.from(mergedMap.values());
     setBookmarks(updated);
-    syncWithServer(syncState.syncCode, updated, collections);
+    syncWithServer(syncState.syncCode, updated, collections, true);
   };
 
   // Extract all tags with counts

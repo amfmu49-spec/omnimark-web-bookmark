@@ -251,6 +251,23 @@ app.post('/api/metadata', async (req, res) => {
           }
           UniversalCoverImage = imgUrl;
         }
+
+        // Fallback: extract the first large/relevant image tag from HTML body if og:image is missing
+        if (!UniversalCoverImage) {
+          const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) {
+            let imgUrl = imgMatch[1];
+            if (imgUrl.startsWith('//')) {
+              imgUrl = 'https:' + imgUrl;
+            } else if (imgUrl.startsWith('/')) {
+              const origin = new URL(normalizedUrl).origin;
+              imgUrl = origin + imgUrl;
+            }
+            if (!/icon|logo|avatar|pixel|spinner/i.test(imgUrl)) {
+              UniversalCoverImage = imgUrl;
+            }
+          }
+        }
       }
     } catch (err) {
       console.log(`Could not fetch HTML directly for ${normalizedUrl}, using AI fallback metadata analysis`);
@@ -291,6 +308,20 @@ app.post('/api/metadata', async (req, res) => {
     }
   }
 
+  // Helper for category-specific default covers
+  const getFallbackCover = (cat: string): string => {
+    const fallbacks: Record<string, string> = {
+      video: 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80',
+      tool: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80',
+      product: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80',
+      code: 'https://images.unsplash.com/photo-1607799279861-4dd421887fb3?w=800&auto=format&fit=crop&q=80',
+      doc: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80',
+      article: 'https://images.unsplash.com/photo-1495020689067-958852a6565d?w=800&auto=format&fit=crop&q=80',
+      other: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&auto=format&fit=crop&q=80',
+    };
+    return fallbacks[cat] || fallbacks.other;
+  };
+
   // Use Gemini AI to enrich title, generate Japanese summary, tags, and category
   const ai = getGeminiClient();
   let aiMetadata = {
@@ -309,6 +340,9 @@ app.post('/api/metadata', async (req, res) => {
     try {
       const prompt = `Analyze this bookmark URL and extracted page metadata, and generate rich, clean Japanese metadata for a bookmark manager.
 If it is a TikTok video, X (Twitter) post, Instagram post, YouTube video, tech blog, product, or documentation, make sure to capture key details.
+
+CRITICAL INSTRUCTION FOR SOCIAL POSTS (X/Twitter, TikTok, Instagram):
+The summary (aiSummary) and key takeaways (aiKeyTakeaways) MUST summarize the specific content or topic of this individual post/tweet, NOT the general biography, career, profile description, or statistics of the author/user. Focus 100% on the post's text itself.
 
 URL: ${normalizedUrl}
 Domain: ${domain}
@@ -374,7 +408,7 @@ Output JSON matching this exact structure:
     title: aiMetadata.title,
     description: aiMetadata.description,
     favicon: defaultFavicon,
-    coverImage: UniversalCoverImage || `https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&auto=format&fit=crop&q=80`,
+    coverImage: UniversalCoverImage || getFallbackCover(aiMetadata.category),
     category: aiMetadata.category,
     suggestedTags: aiMetadata.suggestedTags,
     aiSummary: aiMetadata.aiSummary,
