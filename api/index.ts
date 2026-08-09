@@ -108,7 +108,7 @@ app.post('/api/sync/:syncCode', (req, res) => {
 
 // URL Metadata Extraction & AI Summary Endpoint
 app.post('/api/metadata', async (req, res) => {
-  const { url } = req.body;
+  const { url, collections } = req.body;
   if (!url || typeof url !== 'string') {
     return res.status(400).json({ error: 'Valid URL is required' });
   }
@@ -334,15 +334,24 @@ app.post('/api/metadata', async (req, res) => {
       platformLabel ? `${platformLabel} コンテンツ` : 'Webページ',
       extractedTitle || '詳細情報はリンク先を参照',
     ],
+    suggestedCollectionId: '',
   };
 
   if (ai) {
     try {
+      const collectionsInstruction = Array.isArray(collections) && collections.length > 0
+        ? `\nCRITICAL INSTRUCTION FOR COLLECTION CLASSIFICATION:
+Choose the most appropriate collection ID for this bookmark from this list of user collections:
+${JSON.stringify(collections.map((c: any) => ({ id: c.id, name: c.name })))}
+Return the selected collection's "id" exactly in the "suggestedCollectionId" field. If none of the collections are relevant, return an empty string "".`
+        : '';
+
       const prompt = `Analyze this bookmark URL and extracted page metadata, and generate rich, clean Japanese metadata for a bookmark manager.
 If it is a TikTok video, X (Twitter) post, Instagram post, YouTube video, tech blog, product, or documentation, make sure to capture key details.
 
 CRITICAL INSTRUCTION FOR SOCIAL POSTS (X/Twitter, TikTok, Instagram):
 The summary (aiSummary) and key takeaways (aiKeyTakeaways) MUST summarize the specific content or topic of this individual post/tweet, NOT the general biography, career, profile description, or statistics of the author/user. Focus 100% on the post's text itself.
+${collectionsInstruction}
 
 URL: ${normalizedUrl}
 Domain: ${domain}
@@ -356,10 +365,11 @@ Output JSON matching this exact structure:
 - category: One of ['article', 'video', 'tool', 'product', 'code', 'doc', 'other'] (use 'video' for TikTok/YouTube, 'article' for X/blogs/Instagram)
 - suggestedTags: Array of 3 to 5 relevant Japanese or English tags (include platform tag like 'TikTok', 'X', 'YouTube' if applicable)
 - aiSummary: Comprehensive 2-3 sentence summary in Japanese explaining what this bookmark is about
-- aiKeyTakeaways: Array of 2 to 4 bullet points highlighting key insights, features, or points in Japanese`;
+- aiKeyTakeaways: Array of 2 to 4 bullet points highlighting key insights, features, or points in Japanese
+- suggestedCollectionId: The selected collection ID matching one of the provided user collections (or empty string if none matched)`;
 
       const aiResponse = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -381,8 +391,9 @@ Output JSON matching this exact structure:
                 type: Type.ARRAY,
                 items: { type: Type.STRING },
               },
+              suggestedCollectionId: { type: Type.STRING },
             },
-            required: ['title', 'description', 'category', 'suggestedTags', 'aiSummary', 'aiKeyTakeaways'],
+            required: ['title', 'description', 'category', 'suggestedTags', 'aiSummary', 'aiKeyTakeaways', 'suggestedCollectionId'],
           },
         },
       });
@@ -396,6 +407,7 @@ Output JSON matching this exact structure:
           suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : [platformLabel || 'Web'],
           aiSummary: parsed.aiSummary || '',
           aiKeyTakeaways: Array.isArray(parsed.aiKeyTakeaways) ? parsed.aiKeyTakeaways : [],
+          suggestedCollectionId: parsed.suggestedCollectionId || '',
         };
       }
     } catch (err) {
@@ -413,6 +425,7 @@ Output JSON matching this exact structure:
     suggestedTags: aiMetadata.suggestedTags,
     aiSummary: aiMetadata.aiSummary,
     aiKeyTakeaways: aiMetadata.aiKeyTakeaways,
+    suggestedCollectionId: aiMetadata.suggestedCollectionId || null,
     domain,
   });
 });

@@ -299,7 +299,10 @@ export default function App() {
       const res = await fetch('/api/metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: urlToAdd }),
+        body: JSON.stringify({
+          url: urlToAdd,
+          collections: collections.map((c) => ({ id: c.id, name: c.name })),
+        }),
       });
 
       let newBm: Bookmark | null = null;
@@ -317,7 +320,7 @@ export default function App() {
               coverImage: data.coverImage,
               category: data.category || 'article',
               tags: data.suggestedTags || ['Web'],
-              collectionId: collections[0]?.id || 'work',
+              collectionId: data.suggestedCollectionId || collections[0]?.id || 'work',
               notes: '',
               isFavorite: false,
               isPinned: false,
